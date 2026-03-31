@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Golf Fitness">
+<meta name="theme-color" content="#0d0f0b">
+<title>Golf Fitness</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:     #0d0f0b;
+  --bg2:    #141610;
+  --bg3:    #1c1f17;
+  --border: rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --text:   #e8ead4;
+  --muted:  #7a7d6a;
+  --teal:   #4ecba0;
+  --teal2:  #1a6b52;
+  --amber:  #d4963a;
+  --amber2: #6b4218;
+  --speed:  #c45c3a;
+  --speed2: #5c2416;
+  --green:  #7ab648;
+  --radius: 10px;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+.shell { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); padding: 24px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+.logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.logo-mark { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+.logo-title { font-size: 17px; font-weight: 500; color: var(--text); margin-top: 2px; }
+.nav-section { padding: 0 12px; margin-bottom: 8px; }
+.nav-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; padding: 0 8px; margin-bottom: 4px; }
+.nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 13px; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left; }
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--bg3); color: var(--text); }
+.nav-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.main { flex: 1; padding: 32px; padding-bottom: max(32px, env(safe-area-inset-bottom)); max-width: 860px; }
+.page { display: none; }
+.page.active { display: block; }
+.page-header { margin-bottom: 28px; }
+.page-title { font-size: 22px; font-weight: 500; color: var(--text); }
+.page-sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.card-title { font-size: 13px; font-weight: 500; color: var(--text); }
+.tag { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; }
+.tag-teal  { background: var(--teal2);  color: var(--teal);  }
+.tag-amber { background: var(--amber2); color: var(--amber); }
+.session-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+.session-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.session-card:hover { border-color: var(--border2); background: var(--bg3); }
+.session-card.teal  { border-left: 3px solid var(--teal); }
+.session-card.amber { border-left: 3px solid var(--amber); }
+.sc-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+.sc-label.teal  { color: var(--teal); }
+.sc-label.amber { color: var(--amber); }
+.sc-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.sc-meta  { font-size: 12px; color: var(--muted); }
+.exercise-list { display: flex; flex-direction: column; gap: 10px; }
+.exercise-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.exercise-header { display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; transition: background 0.12s; }
+.exercise-header:hover { background: rgba(255,255,255,0.03); }
+.ex-icon { width: 36px; height: 36px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ex-icon.teal  { background: var(--teal2); }
+.ex-icon.amber { background: var(--amber2); }
+.ex-icon.speed { background: var(--speed2); }
+.ex-info { flex: 1; }
+.ex-name { font-size: 13px; font-weight: 500; }
+.ex-sets { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.ex-chevron { color: var(--muted); font-size: 11px; transition: transform 0.2s; }
+.ex-chevron.open { transform: rotate(180deg); }
+.exercise-detail { display: none; border-top: 1px solid var(--border); }
+.exercise-detail.open { display: block; }
+.detail-inner { display: grid; grid-template-columns: 180px 1fr; }
+.detail-visual { padding: 16px; border-right: 1px solid var(--border); display: flex; align-items: center; justify-content: center; background: var(--bg2); }
+.detail-visual svg { max-width: 150px; height: auto; }
+.detail-text { padding: 16px; }
+.detail-focus { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.detail-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+.detail-cues { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.detail-cues li { font-size: 12px; color: var(--text); padding-left: 14px; position: relative; }
+.detail-cues li::before { content: '→'; position: absolute; left: 0; color: var(--muted); font-size: 10px; top: 1px; }
+.session-select-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.sess-btn { padding: 8px 16px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg2); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.sess-btn:hover { border-color: var(--border2); color: var(--text); }
+.sess-btn.active-teal  { border-color: var(--teal);  color: var(--teal);  background: var(--teal2); }
+.sess-btn.active-amber { border-color: var(--amber); color: var(--amber); background: var(--amber2); }
+.log-exercise-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.log-ex-name { flex: 1; font-size: 13px; }
+.log-check { width: 20px; height: 20px; border-radius: 5px; border: 1.5px solid var(--border2); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; color: transparent; font-size: 12px; }
+.log-check.done { background: var(--teal2); border-color: var(--teal); color: var(--teal); }
+.log-notes { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px 12px; resize: vertical; min-height: 72px; margin-top: 14px; }
+.log-notes:focus { outline: none; border-color: var(--border2); }
+.log-notes::placeholder { color: var(--muted); }
+.btn-primary { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 7px; background: var(--teal2); border: 1px solid var(--teal); color: var(--teal); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; margin-top: 16px; }
+.btn-primary:hover { background: #1f8060; }
+.btn-primary.amber { background: var(--amber2); border-color: var(--amber); color: var(--amber); }
+.btn-primary.amber:hover { background: #7a4e1e; }
+.history-entry { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 10px; }
+.he-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.he-session { font-size: 13px; font-weight: 500; }
+.he-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+.he-stats { display: flex; gap: 16px; }
+.he-stat { font-size: 12px; color: var(--muted); }
+.he-stat span { color: var(--text); font-weight: 500; }
+.he-notes { font-size: 12px; color: var(--muted); margin-top: 8px; font-style: italic; }
+.empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty-state .big { font-size: 32px; margin-bottom: 8px; opacity: 0.3; }
+.empty-state p { font-size: 13px; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+.stat-val { font-size: 28px; font-weight: 500; font-family: 'DM Mono', monospace; }
+.stat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg3); border: 1px solid var(--teal); color: var(--teal); font-size: 13px; padding: 10px 16px; border-radius: 8px; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* rounds */
+.round-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.round-field { display: flex; flex-direction: column; gap: 5px; }
+.round-field label { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; }
+.round-field input { background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 10px; }
+.round-field input:focus { outline: none; border-color: var(--border2); }
+.round-field.full { grid-column: 1 / -1; }
+.round-entry { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 10px; }
+.re-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.re-course { font-size: 14px; font-weight: 500; }
+.re-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+.re-stats { display: flex; gap: 20px; flex-wrap: wrap; }
+.re-stat { font-size: 12px; color: var(--muted); }
+.re-stat span { color: var(--text); font-weight: 500; }
+.re-notes { font-size: 12px; color: var(--muted); margin-top: 8px; font-style: italic; }
+.sg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.sg-cell { background: var(--bg3); border-radius: 6px; padding: 8px 10px; }
+.sg-lbl { font-size: 10px; color: var(--muted); margin-bottom: 2px; }
+.sg-val { font-size: 13px; font-weight: 500; font-family: 'DM Mono', monospace; }
+.sg-val.pos { color: var(--teal); }
+.sg-val.neg { color: var(--speed); }
+
+@media (max-width: 640px) {
+  .session-grid { grid-template-columns: 1fr; }
+  .stats-grid   { grid-template-columns: 1fr 1fr; }
+  .detail-inner { grid-template-columns: 1fr; }
+  .detail-visual { border-right: none; border-bottom: 1px solid var(--border); }
+  .main { padding: 20px 16px; }
+  .sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">Golf Fitness</div>
+    <div class="logo-title">My Program</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Views</div>
+    <button class="nav-item active" onclick="nav('dashboard')"><span class="nav-dot" style="background:var(--teal)"></span> Dashboard</button>
+    <button class="nav-item" onclick="nav('sessions')"><span class="nav-dot" style="background:var(--amber)"></span> Sessions</button>
+    <button class="nav-item" onclick="nav('log')"><span class="nav-dot" style="background:var(--green)"></span> Log workout</button>
+    <button class="nav-item" onclick="nav('history')"><span class="nav-dot" style="background:var(--muted)"></span> History</button>
+    <button class="nav-item" onclick="nav('rounds')"><span class="nav-dot" style="background:var(--green)"></span> Rounds</button>
+  </div>
+</nav>
+<main class="main">
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page active">
+  <div class="page-header">
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub" id="dash-date"></div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Sessions logged</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-week">0</div><div class="stat-lbl">This week</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Day streak</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Your Golf Forever rotation</div></div>
+    <div class="session-grid">
+      <div class="session-card teal" onclick="nav('sessions',0)"><div class="sc-label teal">Session GF-A</div><div class="sc-title">Mobility + rotational strength</div><div class="sc-meta">Bar + cord · all 3 anchors · 20–25 min</div></div>
+      <div class="session-card amber" onclick="nav('sessions',1)"><div class="sc-label amber">Session GF-B</div><div class="sc-title">Power + speed</div><div class="sc-meta">Bar + cord + weighted ball + Superspeed · 30–35 min</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Scheduling guide</div></div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.8;">
+      Alternate GF-A and GF-B with at least <span style="color:var(--text)">1 rest day</span> between sessions.<br>
+      Example week: <span style="color:var(--text)">Mon GF-A · Wed GF-B · Fri GF-A · Sun GF-B</span><br>
+      Weeks 1–4: focus on movement quality — feel each anchor position.<br>
+      Weeks 5–8: step further from anchor to increase cord resistance.<br>
+      Weeks 9+: track swing speed on R10 / TrackMan after GF-B sessions.<br>
+      Equipment needed: bar + cord anchored to door · green ball · gray ball · Superspeed sticks.
+    </div>
+  </div>
+</div>
+
+<!-- SESSIONS -->
+<div id="page-sessions" class="page">
+  <div class="page-header">
+    <div class="page-title">Sessions</div>
+    <div class="page-sub">Tap any exercise to see the demonstration and coaching cues</div>
+  </div>
+  <div class="session-select-row" id="session-tabs"></div>
+  <div id="session-content"></div>
+</div>
+
+<!-- LOG -->
+<div id="page-log" class="page">
+  <div class="page-header">
+    <div class="page-title">Log workout</div>
+    <div class="page-sub">Check off exercises as you go</div>
+  </div>
+  <div class="session-select-row" id="log-tabs"></div>
+  <div id="log-content"></div>
+</div>
+
+<!-- HISTORY -->
+<div id="page-history" class="page">
+  <div class="page-header">
+    <div class="page-title">History</div>
+    <div class="page-sub">Your logged sessions</div>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- ROUNDS -->
+<div id="page-rounds" class="page">
+  <div class="page-header">
+    <div class="page-title">Rounds</div>
+    <div class="page-sub">Log your rounds from 18Birdies</div>
+  </div>
+
+  <div class="card" id="rounds-form-card">
+    <div class="card-header">
+      <div class="card-title">Log a round</div>
+      <button class="btn-primary" style="margin-top:0;padding:5px 12px;font-size:12px;" onclick="toggleRoundForm()">+ New round</button>
+    </div>
+    <div id="round-form" style="display:none;">
+      <div class="round-fields">
+        <div class="round-field full">
+          <label>Course</label>
+          <input type="text" id="rf-course" placeholder="e.g. Augusta National">
+        </div>
+        <div class="round-field">
+          <label>Date</label>
+          <input type="date" id="rf-date">
+        </div>
+        <div class="round-field">
+          <label>Score (gross)</label>
+          <input type="number" id="rf-score" placeholder="e.g. 84">
+        </div>
+        <div class="round-field">
+          <label>Fairways hit</label>
+          <input type="text" id="rf-fir" placeholder="e.g. 8/14">
+        </div>
+        <div class="round-field">
+          <label>Greens in regulation</label>
+          <input type="text" id="rf-gir" placeholder="e.g. 6/18">
+        </div>
+        <div class="round-field">
+          <label>Total putts</label>
+          <input type="number" id="rf-putts" placeholder="e.g. 32">
+        </div>
+        <div class="round-field">
+          <label>SG: Off the tee</label>
+          <input type="text" id="rf-sg-ott" placeholder="e.g. +0.8">
+        </div>
+        <div class="round-field">
+          <label>SG: Approach</label>
+          <input type="text" id="rf-sg-app" placeholder="e.g. -1.2">
+        </div>
+        <div class="round-field">
+          <label>SG: Around green</label>
+          <input type="text" id="rf-sg-arg" placeholder="e.g. +0.3">
+        </div>
+        <div class="round-field">
+          <label>SG: Putting</label>
+          <input type="text" id="rf-sg-putt" placeholder="e.g. -0.5">
+        </div>
+        <div class="round-field full">
+          <label>Notes</label>
+          <input type="text" id="rf-notes" placeholder="How did it feel? Anything to work on?">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn-primary" onclick="saveRound()">Save round ✓</button>
+        <button onclick="toggleRoundForm()" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:8px 4px;margin-top:16px;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Round history</div></div>
+    <div id="rounds-list"></div>
+  </div>
+</div>
+
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const EXERCISES = {
+
+  /* ══ SESSION GF-A: Mobility + Rotational Strength (bar + cord) ══ */
+  A: [
+    { id:'gfa_chop_high', name:'High-to-low rotational chop', sets:'12 reps each side · 3 sets',
+      icon:'teal', focus:'Downswing power pattern',
+      desc:'Anchor the cord at the top hinge. This mirrors the exact diagonal path of the downswing — the highest-transfer exercise in the Golf Forever system for generating power.',
+      cues:['Anchor: HIGH · Stand perpendicular, 6–8 ft out','Grip bar in golf grip, both hands','Initiate with the hips, let the torso follow','Control the return — do not let the cord yank you'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="5" y="10" width="8" height="20" rx="2" fill="#2a2e22"/>
+        <line x1="13" y1="18" x2="55" y2="48" stroke="#d4963a" stroke-width="2.5" stroke-dasharray="4 2"/>
+        <line x1="80" y1="95" x2="68" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="80" y1="95" x2="92" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="80" y1="95" x2="76" y2="54" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="74" cy="45" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="76" y1="66" x2="55" y2="50" stroke="#7ab648" stroke-width="4" stroke-linecap="round"/>
+        <line x1="55" y1="50" x2="42" y2="38" stroke="#d4963a" stroke-width="3" stroke-linecap="round"/>
+        <line x1="58" y1="52" x2="110" y2="105" stroke="#d4963a" stroke-width="1.5" stroke-dasharray="4 2"/>
+        <polygon points="108,103 114,109 106,108" fill="#d4963a"/>
+        <text x="75" y="140" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">anchor high · chop low</text>
+      </svg>`
+    },
+    { id:'gfa_lift_low', name:'Low-to-high rotational lift', sets:'12 reps each side · 3 sets',
+      icon:'teal', focus:'Backswing loading pattern',
+      desc:'Anchor at the bottom hinge. This trains the backswing loading pattern — the mirror image of the chop. Together these two exercises cover the full rotational arc of the golf swing.',
+      cues:['Anchor: LOW · Stand perpendicular, 6–8 ft out','Start with bar at hip level on anchor side','Drive bar diagonally up and across body','Hips rotate first — do not arm-lift'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="5" y="115" width="8" height="20" rx="2" fill="#2a2e22"/>
+        <line x1="13" y1="125" x2="55" y2="100" stroke="#d4963a" stroke-width="2.5" stroke-dasharray="4 2"/>
+        <line x1="80" y1="95" x2="68" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="80" y1="95" x2="92" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="80" y1="95" x2="76" y2="54" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="74" cy="45" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="76" y1="75" x2="55" y2="100" stroke="#7ab648" stroke-width="4" stroke-linecap="round"/>
+        <line x1="55" y1="100" x2="44" y2="112" stroke="#d4963a" stroke-width="3" stroke-linecap="round"/>
+        <line x1="50" y1="96" x2="100" y2="46" stroke="#d4963a" stroke-width="1.5" stroke-dasharray="4 2"/>
+        <polygon points="98,44 106,42 102,50" fill="#d4963a"/>
+        <text x="75" y="140" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">anchor low · lift high</text>
+      </svg>`
+    },
+    { id:'gfa_anti_rot', name:'Anti-rotation bar hold', sets:'Hold 30 sec each side · 3 rounds',
+      icon:'teal', focus:'Anti-rotation core stability',
+      desc:'Anchor at mid height. Hold the bar extended horizontally away from the anchor point and resist the cord pulling you into rotation. This is the Golf Forever version of the Pallof press — core stability under asymmetric load.',
+      cues:['Anchor: MID · Stand perpendicular, 6 ft out','Press bar straight out from chest, arms extended','Resist rotation toward the anchor point — stay square','Breathe steadily — do not hold your breath'],
+      svg:`<svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg">
+        <rect x="5" y="55" width="8" height="25" rx="2" fill="#2a2e22"/>
+        <line x1="13" y1="67" x2="65" y2="67" stroke="#d4963a" stroke-width="2.5" stroke-dasharray="4 2"/>
+        <line x1="80" y1="95" x2="70" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="80" y1="95" x2="90" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="80" y1="95" x2="80" y2="54" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="80" cy="45" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="80" y1="70" x2="65" y2="67" stroke="#7ab648" stroke-width="4" stroke-linecap="round"/>
+        <line x1="65" y1="67" x2="48" y2="67" stroke="#d4963a" stroke-width="3" stroke-linecap="round"/>
+        <polygon points="52,64 44,67 52,70" fill="#d4963a"/>
+        <text x="105" y="63" fill="#7a7d6a" font-size="9" font-family="sans-serif">resist</text>
+        <text x="75" y="136" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">anchor mid · hold square</text>
+      </svg>`
+    },
+    { id:'gfa_hip_hinge_pull', name:'Hip hinge with bar row', sets:'12 reps · 3 sets',
+      icon:'teal', focus:'Glute activation + posture',
+      desc:'Anchor at mid height, face the anchor in golf posture. Hinge at the hips — not the waist — and row the bar toward your chest. Trains the address posture and posterior chain simultaneously.',
+      cues:['Anchor: MID · Face anchor, 6–8 ft out, golf posture','Hinge from hips, spine neutral, soft knee bend','Row bar to chest — elbows drive back, not out','Hold posture throughout — do not stand up to pull'],
+      svg:`<svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg">
+        <rect x="137" y="55" width="8" height="25" rx="2" fill="#2a2e22"/>
+        <line x1="137" y1="67" x2="95" y2="67" stroke="#d4963a" stroke-width="2.5" stroke-dasharray="4 2"/>
+        <line x1="62" y1="88" x2="52" y2="118" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="62" y1="88" x2="74" y2="118" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="62" y1="88" x2="88" y2="62" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="95" cy="55" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="75" y1="72" x2="95" y2="67" stroke="#7ab648" stroke-width="4" stroke-linecap="round"/>
+        <line x1="60" y1="64" x2="45" y2="56" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <text x="30" y="52" fill="#7a7d6a" font-size="9" font-family="sans-serif">row</text>
+        <text x="75" y="134" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">golf posture · hinge and row</text>
+      </svg>`
+    },
+    { id:'gfa_thoracic_open', name:'Thoracic opener with bar', sets:'10 reps each side · 3 sets',
+      icon:'teal', focus:'Thoracic rotation + shoulder mobility',
+      desc:'Anchor at mid height, stand close. Hold bar vertically with one hand at each end. Rotate the bar like a propeller — top hand goes forward, bottom goes back. Opens the mid-back and shoulder complex crucial for the backswing.',
+      cues:['Anchor: MID · Stand close, 3–4 ft out','Hold bar vertical, one hand top one hand bottom','Rotate the bar in the plane of your chest','Feel the stretch across mid-back and rear shoulder'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="5" y="52" width="8" height="25" rx="2" fill="#2a2e22"/>
+        <line x1="13" y1="64" x2="45" y2="64" stroke="#d4963a" stroke-width="2.5" stroke-dasharray="4 2"/>
+        <line x1="75" y1="95" x2="65" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="95" x2="87" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="95" x2="75" y2="54" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="75" cy="45" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="63" y1="42" x2="63" y2="88" stroke="#d4963a" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 63 42 Q 80 38 78 56" fill="none" stroke="#d4963a" stroke-width="1.5"/>
+        <polygon points="76,56 82,60 80,53" fill="#d4963a"/>
+        <text x="75" y="140" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">rotate bar like a propeller</text>
+      </svg>`
+    },
+    { id:'gfa_single_leg_pull', name:'Single leg balance + cord pull', sets:'10 reps each side · 3 sets',
+      icon:'teal', focus:'Balance + hip stability',
+      desc:'Anchor at mid height. Stand on one leg and pull the bar across your body. Combines the balance demands of the golf swing with rotational resistance — one of the most golf-specific stability exercises possible.',
+      cues:['Anchor: MID · Stand on far foot from anchor','Pull bar across body while staying balanced','Hip of standing leg stays level throughout','Start close to anchor — move out as balance improves'],
+      svg:`<svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg">
+        <rect x="5" y="52" width="8" height="25" rx="2" fill="#2a2e22"/>
+        <line x1="13" y1="64" x2="55" y2="70" stroke="#d4963a" stroke-width="2.5" stroke-dasharray="4 2"/>
+        <rect x="20" y="118" width="110" height="3" rx="1.5" fill="#2a2e22"/>
+        <line x1="90" y1="90" x2="90" y2="120" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="90" y1="90" x2="104" y2="105" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="104" y1="105" x2="110" y2="98" stroke="#4ecba0" stroke-width="4" stroke-linecap="round"/>
+        <line x1="90" y1="90" x2="88" y2="52" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="87" cy="43" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="88" y1="66" x2="70" y2="70" stroke="#7ab648" stroke-width="4" stroke-linecap="round"/>
+        <line x1="70" y1="70" x2="55" y2="70" stroke="#d4963a" stroke-width="3" stroke-linecap="round"/>
+        <text x="75" y="134" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">one leg · stay balanced</text>
+      </svg>`
+    },
+  ],
+
+  /* ══ SESSION GF-B: Power + Speed (bar + cord + weighted ball) ══ */
+  B: [
+    { id:'gfb_swing_green', name:'Weighted bar swing (green ball)', sets:'15 swings each side · 2 sets',
+      icon:'amber', focus:'Motor pattern + mobility warmup',
+      desc:'Attach the green ball — D3 swing weight, 2.5x your driver. This is your warmup tool. Swing it slowly and deliberately on both sides to open the hips, shoulders, and thoracic spine before the speed work.',
+      cues:['No cord — bar + green ball only','25–50% effort — this is a warmup, not speed training','Both dominant and non-dominant side','Feel the weight pulling you into full rotation'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="122" width="130" height="3" rx="1.5" fill="#2a2e22"/>
+        <line x1="85" y1="28" x2="62" y2="118" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="88" cy="24" r="8" fill="none" stroke="#7ab648" stroke-width="2.5"/>
+        <line x1="72" y1="90" x2="62" y2="122" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="72" y1="90" x2="84" y2="122" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="72" y1="90" x2="78" y2="52" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="80" cy="43" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="78" y1="64" x2="88" y2="56" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <text x="30" y="46" fill="#7a7d6a" font-size="9" font-family="sans-serif">green ball</text>
+        <text x="75" y="138" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">slow · feel full rotation</text>
+      </svg>`
+    },
+    { id:'gfb_explosive_chop', name:'Explosive rotational chop', sets:'10 reps each side · 3 sets',
+      icon:'amber', focus:'Explosive downswing power',
+      desc:'Same setup as Session A high-to-low chop, but now at full speed with controlled deceleration. This is where the strength built in Session A becomes power. The most direct speed-transfer exercise in the system.',
+      cues:['Anchor: HIGH · 7–8 ft out from anchor','Pause and load at the top — then fire explosively','Decelerate under control — do not just stop','Rest 30 sec between sides — quality over quantity'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="5" y="10" width="8" height="20" rx="2" fill="#2a2e22"/>
+        <line x1="13" y1="18" x2="55" y2="48" stroke="#d4963a" stroke-width="2.5" stroke-dasharray="4 2"/>
+        <line x1="28" y1="88" x2="8" y2="80" stroke="#d4963a" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.6"/>
+        <line x1="26" y1="100" x2="5" y2="96" stroke="#d4963a" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.4"/>
+        <line x1="80" y1="95" x2="68" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="80" y1="95" x2="92" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="80" y1="95" x2="74" y2="52" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="72" cy="43" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="74" y1="64" x2="55" y2="50" stroke="#7ab648" stroke-width="4" stroke-linecap="round"/>
+        <line x1="55" y1="50" x2="40" y2="36" stroke="#d4963a" stroke-width="3" stroke-linecap="round"/>
+        <text x="75" y="140" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">load · pause · explode</text>
+      </svg>`
+    },
+    { id:'gfb_piston_mid', name:'Rotational piston drill', sets:'12 reps each side · 3 sets',
+      icon:'amber', focus:'Hip clearance + sequencing',
+      desc:'Anchor at mid height. Hold bar across chest in golf posture and rotate powerfully — hips first, then torso. The cord provides asymmetric resistance that forces correct sequencing. This is the sequencing drill.',
+      cues:['Anchor: MID · Golf posture, perpendicular to anchor','Hips rotate first — then the torso unwinds','Bar stays level — do not tilt or dip','Feel the hips clearing before the shoulders turn'],
+      svg:`<svg viewBox="0 0 150 140" xmlns="http://www.w3.org/2000/svg">
+        <rect x="5" y="52" width="8" height="25" rx="2" fill="#2a2e22"/>
+        <line x1="13" y1="64" x2="55" y2="64" stroke="#d4963a" stroke-width="2.5" stroke-dasharray="4 2"/>
+        <line x1="78" y1="95" x2="68" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="78" y1="95" x2="90" y2="125" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="78" y1="95" x2="72" y2="54" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="70" cy="45" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="55" y1="64" x2="110" y2="64" stroke="#d4963a" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 90 90 Q 100 76 92 64" fill="none" stroke="#d4963a" stroke-width="1.5"/>
+        <polygon points="90,66 96,60 94,68" fill="#d4963a"/>
+        <text x="75" y="136" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">hips first · bar stays level</text>
+      </svg>`
+    },
+    { id:'gfb_swing_gray', name:'Weighted bar swing (gray ball)', sets:'10 swings each side · 2 sets',
+      icon:'speed', focus:'Overloaded speed training',
+      desc:'Switch to the gray ball — heavier, overloaded feel. After the cord work, the arms and core are loaded. These overloaded swings build the rotational strength that makes the regular club feel light. Both sides always.',
+      cues:['No cord — bar + gray ball only','75–85% effort — controlled aggression','Full rotation through to finish position','Non-dominant side: focus on sequencing, not speed'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="122" width="130" height="3" rx="1.5" fill="#2a2e22"/>
+        <line x1="85" y1="28" x2="62" y2="118" stroke="#888780" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="88" cy="24" r="10" fill="none" stroke="#888780" stroke-width="3"/>
+        <line x1="72" y1="90" x2="62" y2="122" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="72" y1="90" x2="84" y2="122" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="72" y1="90" x2="78" y2="52" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="80" cy="43" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="78" y1="64" x2="88" y2="56" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <text x="30" y="46" fill="#7a7d6a" font-size="9" font-family="sans-serif">gray ball</text>
+        <text x="75" y="138" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">overloaded · both sides</text>
+      </svg>`
+    },
+    { id:'gfb_low_pull_step', name:'Low cord step and pull', sets:'10 reps each side · 3 sets',
+      icon:'amber', focus:'Weight shift + hip drive',
+      desc:'Anchor at low height. Step toward the target as you pull the bar up and across — replicating the weight shift and hip drive through impact. This exercise directly trains the lower body lead that most amateur golfers lack.',
+      cues:['Anchor: LOW · Start with trail foot even with anchor','Step lead foot forward as you pull and rotate','Lead hip drives forward before the arms pull','Plant the foot fully before the rotation fires'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="122" width="130" height="3" rx="1.5" fill="#2a2e22"/>
+        <rect x="5" y="115" width="8" height="18" rx="2" fill="#2a2e22"/>
+        <line x1="13" y1="124" x2="45" y2="110" stroke="#d4963a" stroke-width="2.5" stroke-dasharray="4 2"/>
+        <line x1="48" y1="90" x2="36" y2="122" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="48" y1="90" x2="72" y2="118" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="48" y1="90" x2="44" y2="50" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="42" cy="41" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="44" y1="62" x2="45" y2="110" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <line x1="44" y1="62" x2="62" y2="54" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <line x1="46" y1="106" x2="90" y2="56" stroke="#d4963a" stroke-width="1.5" stroke-dasharray="4 2"/>
+        <polygon points="88,54 96,52 90,60" fill="#d4963a"/>
+        <text x="75" y="140" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">step · plant · then rotate</text>
+      </svg>`
+    },
+    { id:'gfb_ss_green', name:'Superspeed: green stick swings', sets:'10 each side', icon:'speed',
+      focus:'Overspeed neural training (lightest)',
+      desc:'Superspeed finisher begins here. The green is the lightest stick — it trains your nervous system to move faster than it thinks possible. After all the GF cord and ball work, your rotational system is fully loaded. Now express it.',
+      cues:['Absolute max effort — no pacing','Non-dominant side first — this is not optional','Full finish, balanced, every swing','Rest 20–30 sec between sides'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="122" width="130" height="3" rx="1.5" fill="#2a2e22"/>
+        <line x1="30" y1="95" x2="15" y2="88" stroke="#7ab648" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.7"/>
+        <line x1="28" y1="106" x2="12" y2="102" stroke="#7ab648" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
+        <line x1="30" y1="116" x2="10" y2="116" stroke="#7ab648" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.35"/>
+        <line x1="55" y1="30" x2="78" y2="110" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <ellipse cx="80" cy="112" rx="9" ry="4" fill="#7ab648" opacity="0.9"/>
+        <line x1="75" y1="90" x2="68" y2="122" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="90" x2="88" y2="118" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="90" x2="72" y2="52" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="70" cy="43" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="72" y1="64" x2="58" y2="52" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <line x1="58" y1="52" x2="52" y2="35" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <text x="75" y="139" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">max effort · both sides</text>
+      </svg>`
+    },
+    { id:'gfb_ss_blue', name:'Superspeed: blue stick swings', sets:'10 each side', icon:'speed',
+      focus:'Overspeed neural training (match weight)',
+      desc:'Match weight — closest to your actual driver. After the green stick, this feels faster than normal. That neurological shift is the adaptation working. Stay at max effort.',
+      cues:['Still max effort — do not pace down','Maintain the same feeling as the green stick','Watch for deceleration through impact — stay aggressive','Balanced finish every swing'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="122" width="130" height="3" rx="1.5" fill="#2a2e22"/>
+        <line x1="32" y1="92" x2="16" y2="85" stroke="#378add" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.6"/>
+        <line x1="30" y1="104" x2="13" y2="100" stroke="#378add" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.4"/>
+        <line x1="55" y1="30" x2="78" y2="110" stroke="#378add" stroke-width="3.5" stroke-linecap="round"/>
+        <ellipse cx="80" cy="112" rx="9" ry="4" fill="#378add" opacity="0.7"/>
+        <line x1="75" y1="90" x2="68" y2="122" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="90" x2="88" y2="118" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="90" x2="72" y2="52" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="70" cy="43" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="72" y1="64" x2="58" y2="52" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <line x1="58" y1="52" x2="52" y2="35" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <text x="75" y="139" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">match weight · stay aggressive</text>
+      </svg>`
+    },
+    { id:'gfb_ss_red', name:'Superspeed: red stick swings', sets:'10 each side', icon:'speed',
+      focus:'Overspeed neural training (heaviest)',
+      desc:'The heaviest stick loads the nervous system for the final max-effort green set. After all the GF cord, ball, and lighter stick work — this is the spring being fully compressed before it releases.',
+      cues:['Full effort despite the weight','Do not sacrifice swing shape for speed','Breathe out through impact','Both sides — the non-dominant side matters'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="122" width="130" height="3" rx="1.5" fill="#2a2e22"/>
+        <line x1="32" y1="95" x2="18" y2="90" stroke="#c45c3a" stroke-width="1.5" stroke-dasharray="3 2" opacity="0.5"/>
+        <line x1="55" y1="30" x2="78" y2="110" stroke="#c45c3a" stroke-width="4.5" stroke-linecap="round"/>
+        <ellipse cx="80" cy="112" rx="11" ry="5" fill="#c45c3a" opacity="0.7"/>
+        <line x1="75" y1="90" x2="68" y2="122" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="90" x2="88" y2="118" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="90" x2="72" y2="52" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="70" cy="43" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="72" y1="64" x2="58" y2="52" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <line x1="58" y1="52" x2="52" y2="35" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <text x="108" y="116" fill="#c45c3a" font-size="10" font-family="sans-serif">heavy</text>
+        <text x="75" y="139" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">loading the spring</text>
+      </svg>`
+    },
+    { id:'gfb_finish_green', name:'Finish: max speed green stick', sets:'5 swings dominant side', icon:'speed',
+      focus:'Peak speed — full system primed',
+      desc:'The money set. Your nervous system has been loaded by the GF cord work, the weighted balls, and the full Superspeed sequence. The green stick now feels like nothing. This is where weeks of training show up as real speed gains — and what you measure on the R10 or TrackMan.',
+      cues:['Absolute maximum effort — nothing held back','Think of swinging THROUGH the ball, not at it','Loud whoosh = good. Quiet = more available.','Log perceived speed — note if faster than last session'],
+      svg:`<svg viewBox="0 0 150 145" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="122" width="130" height="3" rx="1.5" fill="#2a2e22"/>
+        <line x1="28" y1="85" x2="5" y2="76" stroke="#7ab648" stroke-width="2.5" stroke-dasharray="3 2" opacity="0.8"/>
+        <line x1="26" y1="97" x2="3" y2="92" stroke="#7ab648" stroke-width="2" stroke-dasharray="3 2" opacity="0.7"/>
+        <line x1="27" y1="109" x2="5" y2="108" stroke="#7ab648" stroke-width="2" stroke-dasharray="3 2" opacity="0.5"/>
+        <line x1="58" y1="28" x2="78" y2="110" stroke="#7ab648" stroke-width="3.5" stroke-linecap="round" opacity="0.2"/>
+        <line x1="55" y1="30" x2="76" y2="112" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <ellipse cx="78" cy="113" rx="9" ry="4" fill="#7ab648" opacity="0.9"/>
+        <line x1="75" y1="90" x2="68" y2="122" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="90" x2="88" y2="118" stroke="#4ecba0" stroke-width="5" stroke-linecap="round"/>
+        <line x1="75" y1="90" x2="70" y2="50" stroke="#7ab648" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="68" cy="41" r="9" fill="none" stroke="#7ab648" stroke-width="3"/>
+        <line x1="70" y1="62" x2="54" y2="50" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <line x1="54" y1="50" x2="46" y2="32" stroke="#7ab648" stroke-width="3" stroke-linecap="round"/>
+        <rect x="102" y="28" width="36" height="18" rx="4" fill="#1a1a10"/>
+        <text x="120" y="41" text-anchor="middle" fill="#d4963a" font-size="10" font-family="sans-serif">PR?</text>
+        <text x="75" y="140" text-anchor="middle" fill="#4a5240" font-size="9" font-family="sans-serif">full system loaded · max effort</text>
+      </svg>`
+    },
+  ],
+
+};
+
+const SESSIONS = [
+  { id:'A', label:'Session GF-A', title:'Mobility + rotational strength', color:'teal',  time:'20–25 min', key:'A' },
+  { id:'B', label:'Session GF-B', title:'Power + speed',                  color:'amber', time:'30–35 min', key:'B' },
+];
+
+
+function load() { try { return JSON.parse(localStorage.getItem('gf_log')||'[]'); } catch(e) { return []; } }
+function save(d) { try { localStorage.setItem('gf_log', JSON.stringify(d)); } catch(e) {} }
+
+let currentSession = 0;
+let currentLogSession = 0;
+let logChecked = {};
+
+function nav(page, sessionIdx) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+page+"'")) n.classList.add('active');
+  });
+  if (page === 'sessions') renderSessionTabs(sessionIdx !== undefined ? sessionIdx : currentSession);
+  if (page === 'log')      renderLogTabs(currentLogSession);
+  if (page === 'history')  renderHistory();
+  updateDash();
+}
+
+function updateDash() {
+  const d = new Date();
+  const el = document.getElementById('dash-date');
+  if (el) el.textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const log = load();
+  const ts = document.getElementById('stat-total'); if(ts) ts.textContent = log.length;
+  const weekStart = new Date(); weekStart.setDate(d.getDate() - d.getDay());
+  const ws = document.getElementById('stat-week'); if(ws) ws.textContent = log.filter(e => new Date(e.date) >= weekStart).length;
+  let streak = 0;
+  const dates = [...new Set(log.map(e => new Date(e.date).toDateString()))].sort((a,b)=>new Date(b)-new Date(a));
+  for (let i = 0; i < dates.length; i++) {
+    const exp = new Date(); exp.setDate(d.getDate()-i);
+    if (dates[i] === exp.toDateString()) streak++;
+    else break;
+  }
+  const ss = document.getElementById('stat-streak'); if(ss) ss.textContent = streak;
+}
+
+function renderSessionTabs(idx) {
+  currentSession = idx;
+  const tabsEl = document.getElementById('session-tabs');
+  tabsEl.innerHTML = SESSIONS.map((s,i) =>
+    `<button class="sess-btn ${i===idx?'active-'+s.color:''}" onclick="renderSessionTabs(${i})">${s.label}</button>`
+  ).join('');
+  const s = SESSIONS[idx];
+  const exs = EXERCISES[s.key];
+  document.getElementById('session-content').innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header">
+        <div class="card-title">${s.title}</div>
+        <span class="tag tag-${s.color==='teal'?'teal':'amber'}">${s.time}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);">Tap any exercise to see the demo and coaching cues.</div>
+    </div>
+    <div class="exercise-list">${exs.map((ex,i)=>renderExercise(ex,i,s.color)).join('')}</div>
+    <button class="btn-primary ${s.color==='amber'?'amber':''}" onclick="navToLog(${idx})" style="margin-top:16px;">Log this session ›</button>
+  `;
+}
+
+function renderExercise(ex, i, sessionColor) {
+  const col = ex.icon === 'speed' ? 'speed' : ex.icon;
+  return `
+  <div class="exercise-item" id="exitem-${ex.id}">
+    <div class="exercise-header" onclick="toggleEx('${ex.id}')">
+      <div class="ex-icon ${col}">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          ${col==='teal' ? '<circle cx="9" cy="9" r="5" fill="#4ecba0" opacity="0.8"/>' : ''}
+          ${col==='amber' ? '<rect x="4" y="4" width="10" height="10" rx="2" fill="#d4963a" opacity="0.8"/>' : ''}
+          ${col==='speed' ? '<polygon points="9,3 15,15 3,15" fill="#c45c3a" opacity="0.8"/>' : ''}
+        </svg>
+      </div>
+      <div class="ex-info">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-sets">${ex.sets}</div>
+      </div>
+      <div class="ex-chevron" id="chev-${ex.id}">▼</div>
+    </div>
+    <div class="exercise-detail" id="detail-${ex.id}">
+      <div class="detail-inner">
+        <div class="detail-visual">${ex.svg}</div>
+        <div class="detail-text">
+          <div class="detail-focus">${ex.focus}</div>
+          <div class="detail-desc">${ex.desc}</div>
+          <ul class="detail-cues">${ex.cues.map(c=>`<li>${c}</li>`).join('')}</ul>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleEx(id) {
+  const detail = document.getElementById('detail-'+id);
+  const chev   = document.getElementById('chev-'+id);
+  const open   = detail.classList.contains('open');
+  document.querySelectorAll('.exercise-detail').forEach(d=>d.classList.remove('open'));
+  document.querySelectorAll('.ex-chevron').forEach(c=>c.classList.remove('open'));
+  if (!open) { detail.classList.add('open'); chev.classList.add('open'); }
+}
+
+function navToLog(idx) { currentLogSession = idx; nav('log'); }
+
+function renderLogTabs(idx) {
+  currentLogSession = idx;
+  logChecked = {};
+  const tabsEl = document.getElementById('log-tabs');
+  tabsEl.innerHTML = SESSIONS.map((s,i) =>
+    `<button class="sess-btn ${i===idx?'active-'+s.color:''}" onclick="renderLogTabs(${i})">${s.label}</button>`
+  ).join('');
+  const s = SESSIONS[idx];
+  const exs = EXERCISES[s.key];
+  exs.forEach(ex => { logChecked[ex.id] = false; });
+  document.getElementById('log-content').innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">${s.title}</div>
+        <span class="tag tag-${s.color==='teal'?'teal':'amber'}">${s.time}</span>
+      </div>
+      ${exs.map(ex=>`
+        <div class="log-exercise-row">
+          <div class="log-ex-name">${ex.name}<div style="font-size:11px;color:var(--muted);margin-top:2px;">${ex.sets}</div></div>
+          <div class="log-check" id="chk-${ex.id}" onclick="toggleCheck('${ex.id}')"></div>
+        </div>
+      `).join('')}
+      <textarea class="log-notes" id="log-notes-input" placeholder="Notes — how did it feel? Any soreness? Speed observations on the R10?"></textarea>
+      <button class="btn-primary ${s.color==='amber'?'amber':''}" onclick="saveLog()">Save session ✓</button>
+    </div>
+  `;
+}
+
+function toggleCheck(id) {
+  logChecked[id] = !logChecked[id];
+  const el = document.getElementById('chk-'+id);
+  if (logChecked[id]) { el.classList.add('done'); el.textContent='✓'; }
+  else { el.classList.remove('done'); el.textContent=''; }
+}
+
+function saveLog() {
+  const s = SESSIONS[currentLogSession];
+  const exs = EXERCISES[s.key];
+  const done = exs.filter(ex=>logChecked[ex.id]).length;
+  const notes = document.getElementById('log-notes-input').value.trim();
+  const log = load();
+  log.push({ date:new Date().toISOString(), session:s.id, sessionTitle:s.title, color:s.color, total:exs.length, done, notes });
+  save(log);
+  showToast('Session saved!');
+  logChecked = {};
+  renderLogTabs(currentLogSession);
+  updateDash();
+}
+
+function renderHistory() {
+  const log = load().slice().reverse();
+  const el = document.getElementById('history-list');
+  if (!log.length) {
+    el.innerHTML = `<div class="empty-state"><div class="big">○</div><p>No sessions logged yet.<br>Complete your first workout to see it here.</p></div>`;
+    return;
+  }
+  el.innerHTML = log.map(e => {
+    const d = new Date(e.date);
+    const dateStr = d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const timeStr = d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    const pct = Math.round((e.done/e.total)*100);
+    return `
+    <div class="history-entry">
+      <div class="he-top">
+        <div class="he-session" style="color:${e.color==='teal'?'var(--teal)':'var(--amber)'}">Session ${e.session} — ${e.sessionTitle}</div>
+        <div class="he-date">${dateStr} · ${timeStr}</div>
+      </div>
+      <div class="he-stats">
+        <div class="he-stat"><span>${e.done}/${e.total}</span> exercises</div>
+        <div class="he-stat"><span>${pct}%</span> complete</div>
+      </div>
+      ${e.notes?`<div class="he-notes">"${e.notes}"</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+updateDash();
+renderSessionTabs(0);
+renderLogTabs(0);
+
+/* ─────────────────────────────────────────
+   ROUNDS
+───────────────────────────────────────── */
+function loadRounds() { try { return JSON.parse(localStorage.getItem('gf_rounds')||'[]'); } catch(e) { return []; } }
+function saveRounds(d) { try { localStorage.setItem('gf_rounds', JSON.stringify(d)); } catch(e) {} }
+
+function toggleRoundForm() {
+  const form = document.getElementById('round-form');
+  const visible = form.style.display !== 'none';
+  if (visible) {
+    form.style.display = 'none';
+    clearRoundForm();
+  } else {
+    form.style.display = 'block';
+    document.getElementById('rf-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('rf-course').focus();
+  }
+}
+
+function clearRoundForm() {
+  ['rf-course','rf-date','rf-score','rf-fir','rf-gir','rf-putts',
+   'rf-sg-ott','rf-sg-app','rf-sg-arg','rf-sg-putt','rf-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function saveRound() {
+  const course = document.getElementById('rf-course').value.trim();
+  const score  = document.getElementById('rf-score').value.trim();
+  if (!course && !score) { showToast('Add at least a course or score'); return; }
+
+  const round = {
+    id:      Date.now(),
+    date:    document.getElementById('rf-date').value   || new Date().toISOString().split('T')[0],
+    course:  course || 'Unknown course',
+    score:   score  || null,
+    fir:     document.getElementById('rf-fir').value.trim()     || null,
+    gir:     document.getElementById('rf-gir').value.trim()     || null,
+    putts:   document.getElementById('rf-putts').value.trim()   || null,
+    sg_ott:  document.getElementById('rf-sg-ott').value.trim()  || null,
+    sg_app:  document.getElementById('rf-sg-app').value.trim()  || null,
+    sg_arg:  document.getElementById('rf-sg-arg').value.trim()  || null,
+    sg_putt: document.getElementById('rf-sg-putt').value.trim() || null,
+    notes:   document.getElementById('rf-notes').value.trim()   || '',
+  };
+
+  const rounds = loadRounds();
+  rounds.unshift(round);
+  saveRounds(rounds);
+  clearRoundForm();
+  document.getElementById('round-form').style.display = 'none';
+  renderRoundsList();
+  showToast('Round saved!');
+}
+
+function renderRoundsList() {
+  const rounds = loadRounds();
+  const el = document.getElementById('rounds-list');
+  if (!el) return;
+  if (!rounds.length) {
+    el.innerHTML = '<div class="empty-state"><div class="big">○</div><p>No rounds logged yet.<br>Hit "+ New round" to add your first.</p></div>';
+    return;
+  }
+
+  const sgCell = (lbl, val) => {
+    if (!val) return '';
+    const num = parseFloat(val);
+    const cls = isNaN(num) ? '' : num >= 0 ? 'pos' : 'neg';
+    const display = isNaN(num) ? val : (num >= 0 ? '+' : '') + num.toFixed(1);
+    return `<div class="sg-cell"><div class="sg-lbl">${lbl}</div><div class="sg-val ${cls}">${display}</div></div>`;
+  };
+
+  el.innerHTML = rounds.map(r => {
+    const d = new Date(r.date + 'T12:00:00');
+    const dateStr = d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+    const hasSG = r.sg_ott || r.sg_app || r.sg_arg || r.sg_putt;
+    return `
+    <div class="round-entry">
+      <div class="re-top">
+        <div class="re-course">${r.course}</div>
+        <div class="re-date">${dateStr}</div>
+      </div>
+      <div class="re-stats">
+        ${r.score ? `<div class="re-stat">Score <span>${r.score}</span></div>` : ''}
+        ${r.fir   ? `<div class="re-stat">FIR <span>${r.fir}</span></div>`   : ''}
+        ${r.gir   ? `<div class="re-stat">GIR <span>${r.gir}</span></div>`   : ''}
+        ${r.putts ? `<div class="re-stat">Putts <span>${r.putts}</span></div>` : ''}
+      </div>
+      ${hasSG ? `<div class="sg-grid">
+        ${sgCell('SG: Off tee', r.sg_ott)}
+        ${sgCell('SG: Approach', r.sg_app)}
+        ${sgCell('SG: Around green', r.sg_arg)}
+        ${sgCell('SG: Putting', r.sg_putt)}
+      </div>` : ''}
+      ${r.notes ? `<div class="re-notes">"${r.notes}"</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>
